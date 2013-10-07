@@ -185,7 +185,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
     }
 
     public static class RecordSearchSectionFragment extends Fragment {
-    	public static List<HotKeyword> kwlist;
+    	public static List<HotKeyword> kwlist = null;
     	
     	public static final String PREF_HISTORY_KEYWORDS = "history_keywords";
     	public static final String PREF_TOP_KEYWORDS = "top_keywords";

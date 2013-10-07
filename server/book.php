@@ -547,6 +547,10 @@ result(
 				$trendjson = file_get_contents("http://huiwen.ujs.edu.cn:8080/opac/ajax_lend_trend.php?id=" . sfield("marc_no"));
 				$trendjson = preg_replace('|^.*?\\{|', '{', $trendjson);
 				$trend = json_decode($trendjson, TRUE);
+				$trend = array(
+					"dates" => $trend["x_axis"]["labels"]["labels"],
+					"values" => $trend["elements"][0]["values"],
+				);
 			}
 			catch(Exception $e)
 			{

@@ -20,7 +20,6 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import com.google.gson.Gson;
-
 import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Context;
@@ -34,6 +33,8 @@ import android.util.Pair;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.TextView;
 
 public class SearchResultActivity extends Activity {
@@ -44,11 +45,11 @@ public class SearchResultActivity extends Activity {
 	    SearchResultAdapter adapter;
 	    View loading;
 	    View empty;
-	    
+
 	    @Override
 	    protected void onCreate(Bundle savedInstanceState) {
 	    	Intent intent = getIntent();
-	    	
+
 	    	contextOfApplication = getApplicationContext();
 	    	
 	        super.onCreate(savedInstanceState);
@@ -72,11 +73,22 @@ public class SearchResultActivity extends Activity {
 	        list.setLoadingView(this.getLayoutInflater().inflate(R.layout.fragment_loading, null));
 	        list.setAdapter(adapter = new SearchResultAdapter(sp));
 	        list.setEmptyView(loading);
+	        list.setOnItemClickListener(new OnItemClickListener(){
+				@Override
+				public void onItemClick(AdapterView<?> parent, View view,
+						int position, long id) {
+					LibraryAPI.SearchResult.SearchBookResult book = adapter.getItem(position);
+					Intent myIntent = new Intent(SearchResultActivity.this, BookResultActivity.class);
+					myIntent.putExtra("marc_no", book.marc_no);
+					myIntent.putExtra("title", book.title);
+					SearchResultActivity.this.startActivity(myIntent);
+				}
+	        });
 
 	        adapter.reset();
 	    }
 
-	    public static Context getContextOfApplication(){
+		public static Context getContextOfApplication(){
 	        return contextOfApplication;
 	    }
 	    
@@ -95,11 +107,11 @@ public class SearchResultActivity extends Activity {
 	    }
 	    
         class SearchResultAdapter extends AmazingAdapter {
-                List<LibraryAPI.SearchBookResult> list = new ArrayList<LibraryAPI.SearchBookResult>();
+                List<LibraryAPI.SearchResult.SearchBookResult> list = new ArrayList<LibraryAPI.SearchResult.SearchBookResult>();
         	    LibraryAPI.SearchParameter sp;
         	    Gson gson = new Gson();
         	    
-                private AsyncTask<Integer, Void, Pair<Boolean, List<LibraryAPI.SearchBookResult>>> backgroundTask;
+                private AsyncTask<Integer, Void, Pair<Boolean, List<LibraryAPI.SearchResult.SearchBookResult>>> backgroundTask;
 
                 public SearchResultAdapter(LibraryAPI.SearchParameter sp)
                 {
@@ -109,7 +121,7 @@ public class SearchResultActivity extends Activity {
                 public void reset() {
                     if (backgroundTask != null) backgroundTask.cancel(false);
                     
-                    list = new ArrayList<LibraryAPI.SearchBookResult>();
+                    list = new ArrayList<LibraryAPI.SearchResult.SearchBookResult>();
                     notifyDataSetChanged();
                     
                     onNextPageRequested(1);
@@ -121,7 +133,7 @@ public class SearchResultActivity extends Activity {
                 }
 
                 @Override
-                public LibraryAPI.SearchBookResult getItem(int position) {
+                public LibraryAPI.SearchResult.SearchBookResult getItem(int position) {
                     return list.get(position);
                 }
 
@@ -138,11 +150,11 @@ public class SearchResultActivity extends Activity {
                             backgroundTask.cancel(false);
                     }
                     
-                    backgroundTask = new AsyncTask<Integer, Void, Pair<Boolean, List<LibraryAPI.SearchBookResult>>>() {
+                    backgroundTask = new AsyncTask<Integer, Void, Pair<Boolean, List<LibraryAPI.SearchResult.SearchBookResult>>>() {
                     	int page;
                     	
                         @Override
-                        protected Pair<Boolean, List<LibraryAPI.SearchBookResult>> doInBackground(Integer... params) {
+                        protected Pair<Boolean, List<LibraryAPI.SearchResult.SearchBookResult>> doInBackground(Integer... params) {
                             page = params[0];
                             InputStream inputStream = null;
                             
@@ -166,22 +178,22 @@ public class SearchResultActivity extends Activity {
                                 BufferedReader bReader = new BufferedReader(new InputStreamReader(inputStream, "iso-8859-1"), 8);
                                 LibraryAPI.SearchResult obj = gson.fromJson(bReader, LibraryAPI.SearchResult.class);
                                 
-                                return new Pair<Boolean, List<LibraryAPI.SearchBookResult>>(
+                                return new Pair<Boolean, List<LibraryAPI.SearchResult.SearchBookResult>>(
                             		obj.pages > page, 
-                            		new ArrayList<LibraryAPI.SearchBookResult>(Arrays.asList(obj.books))
+                            		new ArrayList<LibraryAPI.SearchResult.SearchBookResult>(Arrays.asList(obj.books))
                         		);
                             } catch (Exception e) {
                                 Log.e("SearchResultParsing", "Error converting result " + e.toString());
                             }
                             
-                            return new Pair<Boolean, List<LibraryAPI.SearchBookResult>>(
+                            return new Pair<Boolean, List<LibraryAPI.SearchResult.SearchBookResult>>(
                             	false,
-                            	new ArrayList<LibraryAPI.SearchBookResult>()
+                            	new ArrayList<LibraryAPI.SearchResult.SearchBookResult>()
                             );
                         }
                         
                         @Override
-                        protected void onPostExecute(Pair<Boolean, List<LibraryAPI.SearchBookResult>> result) {
+                        protected void onPostExecute(Pair<Boolean, List<LibraryAPI.SearchResult.SearchBookResult>> result) {
                             if (isCancelled()) return; 
 
                             if (page == 1)
@@ -214,7 +226,7 @@ public class SearchResultActivity extends Activity {
                     if (res == null) res = getLayoutInflater().inflate(R.layout.fragment_listrow_book, null);
                     
                     TextView text = (TextView) res.findViewById(R.id.text_html);
-                    LibraryAPI.SearchBookResult book = getItem(position);
+                    LibraryAPI.SearchResult.SearchBookResult book = getItem(position);
                     
                     StringBuilder sb = new StringBuilder();
                     sb.append("<strong><big>");
