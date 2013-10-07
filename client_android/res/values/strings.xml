@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">江苏大学图书馆</string>
+    <string name="action_settings">设置</string>
+    <string name="title_section1">Section 1</string>
+    <string name="title_section2">Section 2</string>
+    <string name="title_section3">Section 3</string>
+    <string name="title_record_search">书目检索</string>
+    <string name="field_search_type">搜索类型</string>
+    <string-array name="field_search_types">
+        <item >题名</item>
+        <item >责任者</item>
+        <item >主题词</item>
+        <item >ISBN/ISSN</item>
+        <item >订购号</item>
+        <item >分类号</item>
+        <item >索书号</item>
+        <item >出版社</item>
+        <item >丛书名</item>
+        <item >题名拼音</item>
+        <item >责任者拼音</item>
+    </string-array>
+    <string name="field_document_type">搜索类型</string>
+    <string-array name="field_document_types">
+        <item >所有书刊</item>
+        <item >中文图书</item>
+        <item >西文图书</item>
+        <item >中文期刊</item>
+        <item >西文期刊</item>
+    </string-array>
+    <string name="hint_keywords">关键字</string>
+    <string name="action_important">已收藏图书</string>
+    <string name="toast_keyword_required">务必输入一个关键字。</string>
+    <string name="button_search">搜索</string>
+    <string name="text_loading">载入中……</string>
+    <string name="text_empty">没有可以显示的项目</string>
+</resources>
