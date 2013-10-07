@@ -1,4 +1,5 @@
 <?php
+if(!isset($_REQUEST['orzfly'])){error_reporting(0);}
 define("ENDPOINT", "http://huiwen.ujs.edu.cn:8080");
 //define("ENDPOINT", "http://opac.zjlib.net");
 //define("ENDPOINT", "http://58.194.172.34");
@@ -48,12 +49,8 @@ function nocached($key, $func, $expired = "+1 hour")
 {
 	$v = $func();
 	return $v;
-}function cached($key, $func, $expired = "+1 hour")
-{
-	$v = $func();
-	return $v;
 }
-/*
+
 function cached($key, $func, $expired = "+1 hour")
 {
 	if ($result = CacheGet($key))
@@ -62,7 +59,7 @@ function cached($key, $func, $expired = "+1 hour")
 	$v = $func();
 	CacheSet($key, $v, $expired);
 	return $v;
-}*/
+}
 
 function result($obj)
 {

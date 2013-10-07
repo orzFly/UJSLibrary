@@ -1,5 +1,7 @@
 <?php
 require_once('functions.php');
+require_once('nokogiri.php');
+
 function sfield($k, $def)
 {
 	if (isset($_REQUEST[$k]))
@@ -487,27 +489,75 @@ function getmarc($marc_no)
 	  )
 	);
 	$context = stream_context_create($opts);
-	$book = file_get_contents("http://huiwen.ujs.edu.cn:8080/opac/item.php?marc_no=" . $marc_no, false, $context);
+	$book = @file_get_contents("http://huiwen.ujs.edu.cn:8080/opac/item.php?marc_no=" . $marc_no, false, $context);
 	preg_match("/show_format_marc\\.php\\?marc_no=([0-9a-fA-F]*)/", $book, $match);
 	$en_marc_no = $match[1];
-	$body = file_get_contents("http://huiwen.ujs.edu.cn:8080/opac/show_format_marc.php?marc_no=" . $en_marc_no, false, $context);
+	$body = @file_get_contents("http://huiwen.ujs.edu.cn:8080/opac/show_format_marc.php?marc_no=" . $en_marc_no, false, $context);
 	preg_match_all("|<li>(<b>\\d\\d\\d</b>.*?)</li>|", $body, $match);
 	$result = $match[1];
-	return html_entity_decode(implode("\n", array_map(function($i){
+	return array($book, html_entity_decode(implode("\n", array_map(function($i){
 		return str_replace(array("<b>", "</b>", "<STRONG>", "</STRONG>"), "", $i);
-	}, $result)));
+	}, $result))));
 }
 
 result(
 	cached(
-		"marc:" . sha1(sfield("marc_no")), 
+		"book:" . sha1(sfield("marc_no")), 
 		function() {
-			try{
-				$content = getmarc(sfield("marc_no"));
-				return parsecnmarc($content);
-			}catch(Exception $e){
-				die();
+			$content = getmarc(sfield("marc_no"));
+			$book = $content[0];
+			$noko = new nokogiri($book);
+			$result = $noko->get("div#s_c_left div table")->toArray();
+			$books = array();
+			if (isset($result[0]["tr"][1]))
+			{
+				array_shift($result[0]["tr"]);
+				$books = array_map(
+					function($in) {
+						return array(
+							"callno" => $in["td"][0]["#text"],
+							"barcode" => $in["td"][1]["#text"],
+							"year" => $in["td"][2]["#text"],
+							"library" => $in["td"][3]["#text"],
+							"location" => $in["td"][4]["#text"],
+							"status" => isset($in["td"][5]["font"]) ? $in["td"][5]['font']["#text"] : $in["td"][5]["#text"],
+							"available" => isset($in["td"][5]["font"]) ? true : false
+						);
+					},
+					$result[0]["tr"]
+				);
 			}
+			$marc = parsecnmarc($content[1]);
+			try{
+				$douban = cached(
+					"douban:" . sha1($marc['isbn'][0]['id']),
+					function() use ($marc) {
+						return json_decode(file_get_contents("https://api.douban.com/v2/book/isbn/" . $marc['isbn'][0]['id']), TRUE);
+					},
+					"+10 days"
+				);
+				if (isset($douban['code']))
+					$douban = NULL;
+			}
+			catch(Exception $e)
+			{
+				$douban = NULL;
+			}
+			try{
+				$trendjson = file_get_contents("http://huiwen.ujs.edu.cn:8080/opac/ajax_lend_trend.php?id=" . sfield("marc_no"));
+				$trendjson = preg_replace('|^.*?\\{|', '{', $trendjson);
+				$trend = json_decode($trendjson, TRUE);
+			}
+			catch(Exception $e)
+			{
+				$trend = NULL;
+			}
+			return array(
+				"status" => $books,
+				"marc" => $marc,
+				"douban" => $douban,
+				"trend" => $trend
+			);
 		},
 		"+10 minutes"
 	)
