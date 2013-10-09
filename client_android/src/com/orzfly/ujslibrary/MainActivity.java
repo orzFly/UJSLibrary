@@ -23,6 +23,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.orzfly.ujslibrary.LibraryAPI.HotKeyword;
+
 import android.app.ActionBar;
 import android.app.FragmentTransaction;
 import android.content.Context;
@@ -248,13 +250,13 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 						List<HotKeyword> tmplist = new ArrayList<HotKeyword>(kwlist);
 						for(HotKeyword k : tmplist)
 			        	{
-			        		if (k.keyword.equals(kw))
+			        		if (k.getKeyword().equals(kw))
 			        		{
 			        			adapter.remove(k);
 			        		}
 			        		else
 			        		{
-				        		if (k.type == HotKeyword.TYPE_HISTORY)
+				        		if (k.getType() == HotKeyword.TYPE_HISTORY)
 				        		{
 				        			if (i <= 10)
 				        				i += 1;
@@ -269,8 +271,8 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 						Set<String> historys = new HashSet<String>();
 						for(HotKeyword k : kwlist)
 			        	{
-			        		if (k.type == HotKeyword.TYPE_HISTORY)
-			        			historys.add(k.keyword);
+			        		if (k.getType() == HotKeyword.TYPE_HISTORY)
+			        			historys.add(k.getKeyword());
 			        	}
 						SharedPreferences.Editor editor = prefs.edit();
 						editor.putStringSet(PREF_HISTORY_KEYWORDS, historys);
@@ -292,7 +294,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 				public void onItemClick(AdapterView<?> parent, View view,
 						int position, long id) {
 					HotKeyword key = (HotKeyword)parent.getAdapter().getItem(position);
-					keyword.setText(key.keyword);
+					keyword.setText(key.getKeyword());
 					keyword.requestFocus();
 					keyword.selectAll();
 				}
@@ -304,43 +306,17 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 
         void addKw(List<HotKeyword> list, HotKeyword nw)
         {
-        	if (nw.keyword.trim().isEmpty())
+        	if (nw.getKeyword().trim().isEmpty())
         		return;
         	
         	for(HotKeyword kw : list)
         	{
-        		if (kw.keyword.equals(nw.keyword))
+        		if (kw.getKeyword().equals(nw.getKeyword()))
         			return;
         	}
         	list.add(nw);
         }
         
-        class HotKeyword {
-        	private final String keyword;
-        	private final int count;
-        	private final int type;
-        	
-        	public static final int TYPE_HISTORY = 0;
-        	public static final int TYPE_HOT = 1;
-        	public static final int TYPE_SUGGESTION = 2;
-        	public static final int TYPE_TRANSLATION = 3;
-        	
-        	public HotKeyword(String keyword, int count, int type)
-        	{
-        		this.keyword = keyword;
-        		this.count = count;
-        		this.type = type;
-        	}
-        	
-        	public String getKeyword() { return this.keyword; }
-        	public int getCount() { return this.count; }
-        	public int getType() { return this.type; }
-
-			@Override
-			public String toString() {
-				return this.keyword;
-			}
-        }
         
         class HotKeywordsAdapter extends ArrayAdapter<HotKeyword> {
         	private Context context;
@@ -394,35 +370,41 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
             	kww = params[0];
             	
                 ArrayList<NameValuePair> param = new ArrayList<NameValuePair>();
-
-                try {
-                    HttpClient httpClient = new DefaultHttpClient();
-
-                    HttpPost httpPost = new HttpPost(LibraryAPI.buildSuggestions(kww));
-                    httpPost.setEntity(new UrlEncodedFormEntity(param));
-                    HttpResponse httpResponse = httpClient.execute(httpPost);
-                    HttpEntity httpEntity = httpResponse.getEntity();
-
-                    inputStream = httpEntity.getContent();
-                } catch (UnsupportedEncodingException e1) {
-                } catch (ClientProtocolException e2) {
-                } catch (IllegalStateException e3) {
-                } catch (IOException e4) {
-                }
-                try {
-                    BufferedReader bReader = new BufferedReader(new InputStreamReader(inputStream, "iso-8859-1"), 8);
-                    StringBuilder sBuilder = new StringBuilder();
-
-                    String line = null;
-                    while ((line = bReader.readLine()) != null) {
-                        sBuilder.append(line + "\n");
-                    }
-
-                    inputStream.close();
-                    result = sBuilder.toString();
-                    
-                } catch (Exception e) {
-                    Log.e("StringBuilding & BufferedReader", "Error converting result " + e.toString());
+                String cached = LibraryAPI.SuggestionsCache.get(kww);
+                if (cached != null)
+                	result = cached;
+                else
+                {
+	                try {
+	                    HttpClient httpClient = new DefaultHttpClient();
+	
+	                    HttpPost httpPost = new HttpPost(LibraryAPI.buildSuggestions(kww));
+	                    httpPost.setEntity(new UrlEncodedFormEntity(param));
+	                    HttpResponse httpResponse = httpClient.execute(httpPost);
+	                    HttpEntity httpEntity = httpResponse.getEntity();
+	
+	                    inputStream = httpEntity.getContent();
+	                } catch (UnsupportedEncodingException e1) {
+	                } catch (ClientProtocolException e2) {
+	                } catch (IllegalStateException e3) {
+	                } catch (IOException e4) {
+	                }
+	                try {
+	                    BufferedReader bReader = new BufferedReader(new InputStreamReader(inputStream, "iso-8859-1"), 8);
+	                    StringBuilder sBuilder = new StringBuilder();
+	
+	                    String line = null;
+	                    while ((line = bReader.readLine()) != null) {
+	                        sBuilder.append(line + "\n");
+	                    }
+	
+	                    inputStream.close();
+	                    result = sBuilder.toString();
+	                    LibraryAPI.SuggestionsCache.put(kww, result, -1);
+	                    
+	                } catch (Exception e) {
+	                    Log.e("StringBuilding & BufferedReader", "Error converting result " + e.toString());
+	                }
                 }
 				return null;
             }
@@ -434,9 +416,9 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
             	List<HotKeyword> list = new ArrayList<HotKeyword>();
             	for(HotKeyword kw : kwlist)
             	{
-            		if (kw.type == HotKeyword.TYPE_HISTORY)
+            		if (kw.getType() == HotKeyword.TYPE_HISTORY)
             		{
-            			if (kw.keyword.contains(kww) && !kw.equals(kww))
+            			if (kw.getKeyword().contains(kww) && !kw.equals(kww))
             				addKw(list, kw);
             		}
             	}
@@ -468,9 +450,9 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 
 				for(HotKeyword kw : kwlist)
             	{
-            		if (kw.type == HotKeyword.TYPE_HOT)
+            		if (kw.getType() == HotKeyword.TYPE_HOT)
             		{
-            			if (kw.keyword.contains(kww))
+            			if (kw.getKeyword().contains(kww))
             				addKw(list, kw);
             		}
             	}
