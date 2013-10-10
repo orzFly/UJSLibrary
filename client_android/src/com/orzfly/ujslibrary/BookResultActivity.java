@@ -37,6 +37,7 @@ import android.database.DataSetObserver;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -148,8 +149,9 @@ public class BookResultActivity extends Activity {
                 
                 View footer = BookResultActivity.this.getLayoutInflater().inflate(R.layout.fragment_book_result_1_footer, null);
                 TextView details = (TextView) footer.findViewById(R.id.text_details);
-                //details.setText(Html.fromHtml(result.getDetailsHTML()));
-                if (result.raw != null)
+                details.setText(Html.fromHtml(result.getDetailsHTML()));
+                details.setMovementMethod(LinkMovementMethod.getInstance());
+                /* if (result.raw != null)
                 {
                 	StringBuffer resultString = new StringBuffer();
                 	Pattern regex = Pattern.compile("\\\\u([0-9a-f]{4})");
@@ -158,8 +160,8 @@ public class BookResultActivity extends Activity {
                 		regexMatcher.appendReplacement(resultString, String.valueOf((char)Integer.parseInt(regexMatcher.group(1), 16)));
                 	}
                 	regexMatcher.appendTail(resultString);
-                	details.setText(resultString);
-                }
+                	details.setText(details.getText() + resultString.toString());
+                }*/
                 list.setHeaderDividersEnabled(true);
                 list.setFooterDividersEnabled(true);
             	list.addHeaderView(header, null, false);

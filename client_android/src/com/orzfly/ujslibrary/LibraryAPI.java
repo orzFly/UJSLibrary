@@ -1,8 +1,12 @@
 package com.orzfly.ujslibrary;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -298,6 +302,26 @@ public final class LibraryAPI {
 			public String[] publisher;
 			public String[] publisher_date;
 			public String[] author;
+			public String[] unknown;
+			public BookMARCTitleAlternativesResult[] title_alternatives;
+			public BookMARCISBNResult[] isbn;
+			
+			public static class BookMARCTitleAlternativesResult {
+				public Boolean meaningless;
+				public String name;
+				public String[] name_other;
+				public String[] album_id;
+				public String[] album_name;
+				public String number;
+				public String other;
+				public String language;
+			}
+			public static class BookMARCISBNResult {
+				public String id;
+				public String limited;
+				public String price;
+				public String[] wrong;
+			}
 		}
 
 		public String getTitle() {
@@ -306,14 +330,112 @@ public final class LibraryAPI {
 					);
 		}
 		
+		private String cleanAndJoinString(String det, String... T)
+		{
+		    List<String> list = new ArrayList<String>(Arrays.asList(T));
+		    list.removeAll(Collections.singleton(null));
+			return StringUtils.join(list, det);
+		}
+		
 		public String getSummaryHTML() {
 			StringBuilder sb = new StringBuilder();
+			appendHTMLField(sb, "正题名", this.marc.title);
+			if (this.marc.title_alternatives != null)
+			{
+				for(BookMARCResult.BookMARCTitleAlternativesResult i : this.marc.title_alternatives)
+				{
+					appendHTMLField(sb, "并列名", cleanAndJoinString(", ", i.name, StringUtils.join(i.name_other, ", ")));
+				}
+			}
 			appendHTMLField(sb, "责任者", this.marc.author);
 			appendHTMLField(sb, "出版者", 
 					(this.marc.publisher_location != null ? StringUtils.join(this.marc.publisher_location) + ":" : "") +
 					(this.marc.publisher != null ? StringUtils.join(this.marc.publisher) : "") + 
 					(this.marc.publisher_date != null ? ", " + StringUtils.join(this.marc.publisher_date) : "")
 				);
+			if (this.marc.isbn != null)
+			{
+				for(BookMARCResult.BookMARCISBNResult i : this.marc.isbn)
+				{
+					appendHTMLField(sb, "ISBN", cleanAndJoinString(", ", i.id, i.limited, i.price, StringUtils.join(i.wrong)));
+				}
+			}
+			return sb.toString();
+		}
+	
+		public String getDetailsHTML() {
+			StringBuilder sb = new StringBuilder();
+			if (this.marc.unknown != null)
+			{
+				sb.append("<strong>Unknown</strong>: <br/>");
+				for(String item: this.marc.unknown)
+				{
+					appendHTMLText(sb, item);
+					appendHTMLBR(sb);
+				}
+			}
+			if (this.douban != null)
+			{
+				sb.append("<br/><br/><small>以下数据来自于");
+				if (this.douban.alt != null)
+				{
+					sb.append("<a href=\"");
+					appendHTMLText(sb, this.douban.alt);
+					sb.append("\">豆瓣图书</a>");
+				}
+				else
+				{
+					sb.append("豆瓣图书");
+				}
+				sb.append("，信息可能和馆藏书籍存在差异。</small><br/>");
+				appendHTMLField(sb, "书名", this.douban.title);
+				appendHTMLField(sb, "子名", this.douban.subtitle);
+				appendHTMLField(sb, "原名", this.douban.origin_title);
+				appendHTMLField(sb, "又名", this.douban.alt_title);
+				appendHTMLField(sb, "作者", StringUtils.join(this.douban.author, ", "));
+				appendHTMLField(sb, "译者", StringUtils.join(this.douban.translator, ", "));
+				appendHTMLField(sb, "出版", this.douban.publisher);
+				appendHTMLField(sb, "日期", this.douban.pubdate);
+				appendHTMLField(sb, "装订", this.douban.binding);
+				appendHTMLField(sb, "页数", this.douban.pages);
+				appendHTMLField(sb, "价格", this.douban.price);
+				appendHTMLField(sb, "ISBN10", this.douban.isbn10);
+				appendHTMLField(sb, "ISBN13", this.douban.isbn13);
+				if (this.douban.tags != null)
+				{
+					List<String> list = new ArrayList<String>();
+					for(BookResult.BookDoubanResult.BookDoubanTagResult tag : this.douban.tags)
+						list.add(StringEscapeUtils.escapeHtml4(tag.name) + "<small>" + String.valueOf(tag.count) + "</small>");
+					appendHTMLFieldRaw(sb, "标签", StringUtils.join(list, ", "));
+				}
+				if (this.douban.rating != null)
+					appendHTMLField(sb, "评分", 
+							String.valueOf(this.douban.rating.average) + 
+							" (" + 
+							String.valueOf(this.douban.rating.numRaters) + 
+							" 人, " + 
+							String.valueOf(this.douban.rating.min) + 
+							"~" + 
+							String.valueOf(this.douban.rating.max) + 
+							")"
+							);
+				appendHTMLFieldLong(sb, "内容介绍", this.douban.summary);
+				appendHTMLFieldLong(sb, "作者介绍", this.douban.author_intro);
+				appendHTMLFieldLong(sb, "目录", this.douban.catelog);
+			}
+			if (this.raw != null)
+			{
+				appendHTMLBR(sb);
+				sb.append("<strong>Raw</strong>: <br/>");
+				StringBuffer resultString = new StringBuffer();
+            	Pattern regex = Pattern.compile("\\\\u([0-9a-f]{4})");
+            	Matcher regexMatcher = regex.matcher(this.raw);
+            	while (regexMatcher.find()) {
+            		regexMatcher.appendReplacement(resultString, String.valueOf((char)Integer.parseInt(regexMatcher.group(1), 16)));
+            	}
+            	regexMatcher.appendTail(resultString);
+            	appendHTMLText(sb, resultString.toString());
+			}
 			return sb.toString();
 		}
 		
@@ -327,16 +449,34 @@ public final class LibraryAPI {
 			sb.append("<br />");
 		}
 		
+		private void appendHTMLFieldRaw(StringBuilder sb, String key, String value)
+		{
+			if (value == null) return;
+			if (value.length() == 0) return;
+			sb.append("<strong>" + StringEscapeUtils.escapeHtml4(key) + "</strong>: ");
+			sb.append(value + "<br />");
+		}
+		
 		private void appendHTMLField(StringBuilder sb, String key, String value)
 		{
 			if (value == null) return;
+			if (value.length() == 0) return;
 			sb.append("<strong>" + StringEscapeUtils.escapeHtml4(key) + "</strong>: ");
+			sb.append(StringEscapeUtils.escapeHtml4(value) + "<br />");
+		}
+		
+		private void appendHTMLFieldLong(StringBuilder sb, String key, String value)
+		{
+			if (value == null) return;
+			if (value.length() == 0) return;
+			sb.append("<strong>" + StringEscapeUtils.escapeHtml4(key) + "</strong>: <br/>");
 			sb.append(StringEscapeUtils.escapeHtml4(value) + "<br />");
 		}
 		
 		private void appendHTMLField(StringBuilder sb, String key, String[] value)
 		{
 			if (value == null) return;
+			if (value.length == 0) return;
 			sb.append("<strong>" + StringEscapeUtils.escapeHtml4(key) + "</strong>: ");
 			sb.append(StringEscapeUtils.escapeHtml4(StringUtils.join(value)) + "<br />");
 		}

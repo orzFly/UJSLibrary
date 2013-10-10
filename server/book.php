@@ -462,7 +462,7 @@ function parsecnmarc($body)
 						);
 						break;
 					default:
-						$r['unknown'] = $line;
+						$r['unknown'][] = $line;
 						break;
 				}
 				break;
