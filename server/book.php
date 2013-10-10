@@ -95,7 +95,7 @@ function parsecnmarc($body)
 		switch($id)
 		{
 			case "000":
-				// mb_substr($rest, 0, 5); // ¼ÇÂ¼³¤¶È£¬5¸öÊ®½øÖÆÊı¡£ÓÒ±ß¶ÔÆë£¬²»×ã5¸öÊı×ÖÊ±ÓÃÁã²¹Æë¡£
+				// mb_substr($rest, 0, 5); // è®°å½•é•¿åº¦ï¼Œ5ä¸ªåè¿›åˆ¶æ•°ã€‚å³è¾¹å¯¹é½ï¼Œä¸è¶³5ä¸ªæ•°å­—æ—¶ç”¨é›¶è¡¥é½ã€‚
 				$r["record_status"] = mb_substr($rest, 5, 1);
 				$r["record_type"] = mb_substr($rest, 6, 1);
 				$r["record_level"] = mb_substr($rest, 7, 1);
@@ -118,7 +118,7 @@ function parsecnmarc($body)
 				$sub = parsecnmarc_sub($rest);
 				switch($id)
 				{
-					case "100": // Ê²Ã´¼¦°É·´ÕıÀÏ×Ó¿´²»¶®¡­¡­
+					case "100": // ä»€ä¹ˆé¸¡å§åæ­£è€å­çœ‹ä¸æ‡‚â€¦â€¦
 					case "105":
 					case "920":
 						break;
@@ -231,65 +231,65 @@ function parsecnmarc($body)
 							'issn' => parsecnmarc_array($sub['x']),
 						);
 						break;
-					case "300": //Ò»°ãĞÔ¸½×¢
+					case "300": //ä¸€èˆ¬æ€§é™„æ³¨
 						$r['memo'][] = $sub['a'];
 						break;
-					case "301": //±êÊ¶ºÅ¸½×¢
+					case "301": //æ ‡è¯†å·é™„æ³¨
 						$r['memo_id'][] = $sub['a'];
 						break;
-					case "302": //±àÂëĞÅÏ¢¸½×¢
+					case "302": //ç¼–ç ä¿¡æ¯é™„æ³¨
 						$r['memo_code'][] = $sub['a'];
 						break;
-					case "303": //±êÊ¶ºÅ¸½×¢
+					case "303": //æ ‡è¯†å·é™„æ³¨
 						$r['memo_general'][] = $sub['a'];
 						break;
-					case "304": //ÌâÃûÓëÔğÈÎËµÃ÷¸½×¢
+					case "304": //é¢˜åä¸è´£ä»»è¯´æ˜é™„æ³¨
 						$r['memo_title'][] = $sub['a'];
 						break;
-					case "305": //°æ±¾ÓëÊéÄ¿Ê·¸½×¢
+					case "305": //ç‰ˆæœ¬ä¸ä¹¦ç›®å²é™„æ³¨
 						$r['memo_version'][] = $sub['a'];
 						break;
-					case "306": //³ö°æ·¢ĞĞµÈ¸½×¢
+					case "306": //å‡ºç‰ˆå‘è¡Œç­‰é™„æ³¨
 						$r['memo_publisher'][] = $sub['a'];
 						break;
-					case "307": //ÔØÌåĞÎÌ¬¸½×¢
+					case "307": //è½½ä½“å½¢æ€é™„æ³¨
 						$r['memo_physical'][] = $sub['a'];
 						break;
-					case "308": //´Ô±à¸½×¢
+					case "308": //ä¸›ç¼–é™„æ³¨
 						$r['memo_series'][] = $sub['a'];
 						break;
-					case "310": //×°¶©¼°»ñµÃ·½Ê½¸½×¢
+					case "310": //è£…è®¢åŠè·å¾—æ–¹å¼é™„æ³¨
 						$r['memo_price'][] = $sub['a'];
 						break;  
-					case "311": //Á¬½Ó×Ö¶Î¸½×¢
+					case "311": //è¿æ¥å­—æ®µé™„æ³¨
 						$r['memo_linking'][] = $sub['a'];
 						break;  
-					case "312": //Ïà¹ØÌâÃû¸½×¢
+					case "312": //ç›¸å…³é¢˜åé™„æ³¨
 						$r['memo_related_title'][] = $sub['a'];
 						break;  
-					case "313": //Ö÷Ìâ¸½×¢
+					case "313": //ä¸»é¢˜é™„æ³¨
 						$r['memo_subject'][] = $sub['a'];
 						break;  
-					case "314": //ÖªÊ¶ÔğÈÎ¸½×¢
+					case "314": //çŸ¥è¯†è´£ä»»é™„æ³¨
 						$r['memo_copyright'][] = $sub['a'];
 						break;  
-					case "315": //×ÊÁÏ(»ò³ö°æÎïÀàĞÍ)ÌØÊâÏ¸½Ú¸½×¢
+					case "315": //èµ„æ–™(æˆ–å‡ºç‰ˆç‰©ç±»å‹)ç‰¹æ®Šç»†èŠ‚é™„æ³¨
 						$r['memo_special'][] = $sub['a'];
 						break;  
-					case "320": //ÊéÄ¿¡¢Ë÷Òı¸½×¢
+					case "320": //ä¹¦ç›®ã€ç´¢å¼•é™„æ³¨
 						$r['memo_index'][] = $sub['a'];
 						break;  
-					case "327": //ÄÚÈİ¸½×¢
+					case "327": //å†…å®¹é™„æ³¨
 						$r['memo_content'][] = $sub['a'];
 						break;
-					case "330": //ÕªÒª
+					case "330": //æ‘˜è¦
 						$r['memo_excerpt'][] = $sub['a'];
 						break;
-					case "333": //Ê¹ÓÃ¶ÔÏó¸½×¢
+					case "333": //ä½¿ç”¨å¯¹è±¡é™„æ³¨
 						$r['memo_user'][] = $sub['a'];
 						break;
 					case "510":
-						$r['title_alternative'][] = array(
+						$r['title_alternatives'][] = array(
 							"meaningless" => !(bool)($sub['ctl1'] ?: 1),
 							"name" => $sub['a'],
 							"name_other" => parsecnmarc_array($sub['e']),
@@ -326,14 +326,14 @@ function parsecnmarc($body)
 							"pinyin" => $sub['A'],
 						);
 						break;
-					case "540": //±àÄ¿Ô±²¹³äµÄ¸½¼ÓÌâÃû
+					case "540": //ç¼–ç›®å‘˜è¡¥å……çš„é™„åŠ é¢˜å
 						$r['title_cataloguer'][] = array(
 							"meaningless" => !(bool)($sub['ctl1'] ?: 1),
 							"name" => $sub['a'],
 							"pinyin" => $sub['A'],
 						);
 						break;
-					case "541": //±àÄ¿Ô±²¹³äµÄ·­ÒëÌâÃû
+					case "541": //ç¼–ç›®å‘˜è¡¥å……çš„ç¿»è¯‘é¢˜å
 						$r['title_cataloguer_translated'][] = array(
 							"meaningless" => !(bool)($sub['ctl1'] ?: 1),
 							"name" => $sub['a'],
