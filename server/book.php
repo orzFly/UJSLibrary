@@ -289,7 +289,7 @@ function parsecnmarc($body)
 						$r['memo_user'][] = $sub['a'];
 						break;
 					case "510":
-						$r['title_alternative'][] = array(
+						$r['title_alternatives'][] = array(
 							"meaningless" => !(bool)($sub['ctl1'] ?: 1),
 							"name" => $sub['a'],
 							"name_other" => parsecnmarc_array($sub['e']),
