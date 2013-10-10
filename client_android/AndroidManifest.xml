@@ -36,6 +36,11 @@
 			android:label="@string/app_name"
 			android:name="com.orzfly.ujslibrary.BookResultActivity" >
         </activity>
+        
+        <activity
+			android:label="@string/app_name"
+			android:name="com.orzfly.ujslibrary.TouchImageViewActivity" >
+        </activity>
     </application>
 
 </manifest>

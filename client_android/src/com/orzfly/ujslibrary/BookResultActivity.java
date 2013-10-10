@@ -23,6 +23,8 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 
+import cn.trinea.android.common.service.impl.ImageSDCardCache;
+
 import com.google.gson.Gson;
 import com.orzfly.ujslibrary.LibraryAPI.BookResult.BookStatusGroup;
 import com.orzfly.ujslibrary.LibraryAPI.HotKeyword;
@@ -39,6 +41,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.BaseExpandableListAdapter;
@@ -136,7 +139,7 @@ public class BookResultActivity extends Activity {
             
             public List<BookStatusGroup> groups;
             
-            public void BuildText(LibraryAPI.BookResult result) {
+            public void BuildText(final LibraryAPI.BookResult result) {
             	BookResultActivity.this.getActionBar().setTitle(result.getTitle());
             	
             	View header = BookResultActivity.this.getLayoutInflater().inflate(R.layout.fragment_book_result_1_header, null);
@@ -161,6 +164,21 @@ public class BookResultActivity extends Activity {
                 list.setFooterDividersEnabled(true);
             	list.addHeaderView(header, null, false);
             	list.addFooterView(footer, null, false);
+            	
+            	if (result.douban != null && result.douban.images != null && result.douban.images.medium != null)
+            	{
+            		ImageView cover = (ImageView) header.findViewById(R.id.image_cover);
+            		LibraryAPI.getIconCache().get(result.douban.images.medium, cover);
+            		cover.setOnClickListener(new OnClickListener(){
+						@Override
+						public void onClick(View view) {
+							String url = result.douban.images.large != null ? result.douban.images.large : result.douban.images.medium;
+							Intent myIntent = new Intent(BookResultActivity.this, TouchImageViewActivity.class);
+							myIntent.putExtra("url", url);
+							BookResultActivity.this.startActivity(myIntent);
+						}
+            		});
+            	}            	
             	
             	if (result.status != null)
             	{

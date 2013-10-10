@@ -10,15 +10,21 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.message.BasicNameValuePair;
 
+import android.graphics.drawable.Drawable;
+import android.view.View;
+import android.widget.ImageView;
+import cn.trinea.android.common.service.impl.ImageCache;
+import cn.trinea.android.common.service.impl.ImageCache.OnImageCallbackListener;
+
 import com.spaceprogram.kittycache.KittyCache;
 
 public final class LibraryAPI {
 	public final static KittyCache<String, String> SuggestionsCache;
 	public final static KittyCache<String, BookResult> BookResultCache;
-
+	private static ImageCache IconCache;
 	static {
-		SuggestionsCache = new KittyCache<String, String>(100);
-		BookResultCache = new KittyCache<String, BookResult>(20);
+		SuggestionsCache = new KittyCache<String, String>(50);
+		BookResultCache = new KittyCache<String, BookResult>(50);
 	}
 	
 	public final static String TopKeywords = "http://ujslibrary.orzfly.com/api/top_keywords.php";
@@ -26,6 +32,26 @@ public final class LibraryAPI {
 	public final static String Search = "http://ujslibrary.orzfly.com/api/search.php";
 	public final static String Book = "http://ujslibrary.orzfly.com/api/book.php";
 
+	public static ImageCache getIconCache()
+	{
+		if (IconCache == null)
+		{
+			IconCache = new ImageCache();
+		    IconCache.setOnImageCallbackListener(new OnImageCallbackListener() {
+		        private static final long serialVersionUID = 1L;
+		 
+		        @Override
+		        public void onImageLoaded(String imageUrl, Drawable imageDrawable, View view, boolean isInCache) {
+		            if (view != null && imageDrawable != null) {
+		                ImageView imageView = (ImageView)view;
+		                imageView.setImageDrawable(imageDrawable);
+		            }
+		        }
+		    });	
+		}
+		return IconCache;
+	}
+	
     public static class HotKeyword {
     	private final String keyword;
     	private final int count;

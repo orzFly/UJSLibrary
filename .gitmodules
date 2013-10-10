@@ -1,0 +1,3 @@
+[submodule "client_android/vendor/AndroidCommon"]
+	path = client_android/vendor/AndroidCommon
+	url = https://github.com/Trinea/AndroidCommon.git
