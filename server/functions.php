@@ -61,10 +61,15 @@ function cached($key, $func, $expired = "+1 hour")
 	return $v;
 }
 
-function result($obj)
+function result($obj, $deferjob = NULL)
 {
 	Header("Content-Type: application/json");
 	echo json_encode($obj);
+	fastcgi_finish_request();
+
+	if ($deferjob != NULL)
+		$deferjob($obj);
+
 	die();
 }
 
@@ -103,7 +108,7 @@ function getSuggestions($param)
 			}
 			return array();
 		},
-		"+10 minutes"
+		"+1 days"
 	);
 }
 
@@ -129,6 +134,6 @@ function getTranslations($param)
 			}
 			return array();
 		},
-		"+10 minutes"
+		"+1 days"
 	);
 }

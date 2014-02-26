@@ -54,6 +54,7 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -194,6 +195,8 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
     	public static final String PREF_TOP_KEYWORDS_CACHED = "top_keywords_cached";
     	public HotKeywordsAdapter adapter;
     	public AutoCompleteTextView keyword;
+    	public Spinner spinner_search_type;
+    	public Spinner spinner_document_type;
     	public HotKeywordsSuggestionsAsyncTask lastsuggesttask;
     	
         public RecordSearchSectionFragment() {
@@ -218,6 +221,10 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
             task.execute("", "");
             
             final Button submit = (Button) rootView.findViewById(R.id.button_submit);
+            
+            spinner_search_type = (Spinner) rootView.findViewById(R.id.spinner_search_type);
+            spinner_document_type = (Spinner) rootView.findViewById(R.id.spinner_document_type);
+            
             keyword = (AutoCompleteTextView) rootView.findViewById(R.id.edit_keywords);
             keyword.addTextChangedListener(new TextWatcher(){  
             	  
@@ -243,6 +250,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 				@Override
 				public void onClick(View arg0) {
 					String kw = keyword.getText().toString().trim();
+					
 					
 					if (kw.length() > 0)
 					{
@@ -277,9 +285,13 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 						SharedPreferences.Editor editor = prefs.edit();
 						editor.putStringSet(PREF_HISTORY_KEYWORDS, historys);
 						editor.commit();
-					
+						
 						Intent myIntent = new Intent(MainActivity.getInstance(), SearchResultActivity.class);
-						myIntent.putExtra("title", kw);
+						
+						String searchType = MainActivity.getInstance().getResources().getStringArray(R.array.field_search_types_key)[(int) spinner_search_type.getSelectedItemId()];
+						String docType = MainActivity.getInstance().getResources().getStringArray(R.array.field_document_types_key)[(int) spinner_document_type.getSelectedItemId()];
+						myIntent.putExtra(searchType, kw);
+						myIntent.putExtra("doctype", docType);
 						MainActivity.getInstance().startActivity(myIntent);
 					}
 					else

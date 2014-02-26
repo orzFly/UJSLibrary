@@ -21,14 +21,98 @@
         <item >题名拼音</item>
         <item >责任者拼音</item>
     </string-array>
+    <string-array name="field_search_types_key">
+        <item >title</item>
+        <item >author</item>
+        <item >keyword</item>
+        <item >isbn</item>
+        <item >asordno</item>
+        <item >coden</item>
+        <item >callno</item>
+        <item >publisher</item>
+        <item >series</item>
+        <item >tpinyin</item>
+        <item >apinyin</item>
+    </string-array>
     <string name="field_document_type">搜索类型</string>
     <string-array name="field_document_types">
         <item >所有书刊</item>
-        <item >中文图书</item>
-        <item >西文图书</item>
-        <item >中文期刊</item>
-        <item >西文期刊</item>
+        <item >规范文档</item>
+		<item >中文图书</item>
+		<item >西文图书</item>
+		<item >日文图书</item>
+		<item >俄文图书</item>
+		<item >CD</item>
+		<item >DVD</item>
+		<item >学位论文</item>
+		<item >电子图书</item>
+		<item >电子文献</item>
+		<item >中文期刊</item>
+		<item >西文期刊</item>
+		<item >日文期刊</item>
+		<item >俄文期刊</item>
+		<item >电子图书</item>
+		<item >电子期刊</item>
+		<item >中文古籍</item>
+		<item >非中文古籍</item>
+		<item >乐谱手稿</item>
+		<item >印刷乐谱</item>
+		<item >计算机文档</item>
+		<item >测绘资料</item>
+		<item >非音乐录音</item>
+		<item >音乐录音</item>
+		<item >录像资料</item>
+		<item >电影胶片</item>
+		<item >投影幻灯</item>
+		<item >缩微制品</item>
+		<item >手稿</item>
+		<item >书法绘画</item>
+		<item >金石拓片</item>
+		<item >三维制品</item>
+		<item >混合型资料</item>
+		<item >VCD</item>
+		<item >钥匙</item>
+		<item >类型不详</item>
     </string-array>
+    <string-array name="field_document_types_key">
+        <item >ALL</item>
+        <item >00</item>
+        <item >01</item>
+        <item >02</item>
+        <item >03</item>
+        <item >04</item>
+        <item >05</item>
+        <item >06</item>
+        <item >07</item>
+        <item >08</item>
+        <item >09</item>
+        <item >11</item>
+        <item >12</item>
+        <item >13</item>
+        <item >14</item>
+        <item >29</item>
+        <item >30</item>
+        <item >31</item>
+        <item >32</item>
+        <item >33</item>
+        <item >34</item>
+        <item >35</item>
+        <item >36</item>
+        <item >37</item>
+        <item >38</item>
+        <item >39</item>
+        <item >40</item>
+        <item >41</item>
+        <item >42</item>
+        <item >43</item>
+        <item >44</item>
+        <item >45</item>
+        <item >46</item>
+        <item >47</item>
+        <item >48</item>
+        <item >49</item>
+        <item >99</item>
+    </string-array>   
     <string name="hint_keywords">关键字</string>
     <string name="action_important">已收藏图书</string>
     <string name="toast_keyword_required">务必输入一个关键字。</string>

@@ -1,5 +1,6 @@
 package com.orzfly.ujslibrary;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -14,11 +15,15 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.message.BasicNameValuePair;
 
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Environment;
 import android.view.View;
 import android.widget.ImageView;
+import cn.trinea.android.common.entity.FailedReason;
 import cn.trinea.android.common.service.impl.ImageCache;
-import cn.trinea.android.common.service.impl.ImageCache.OnImageCallbackListener;
+import cn.trinea.android.common.service.impl.ImageMemoryCache.OnImageCallbackListener;
 
 import com.spaceprogram.kittycache.KittyCache;
 
@@ -41,16 +46,37 @@ public final class LibraryAPI {
 		if (IconCache == null)
 		{
 			IconCache = new ImageCache();
+			IconCache.setCacheFolder(
+				new StringBuilder().append(Environment.getExternalStorageDirectory().getAbsolutePath())
+					 .append(File.separator).append("com.orzfly")
+					 .append(File.separator).append("ujslibrary")
+					 .append(File.separator).append("ImageCache")
+					 .toString());
 		    IconCache.setOnImageCallbackListener(new OnImageCallbackListener() {
-		        private static final long serialVersionUID = 1L;
-		 
-		        @Override
-		        public void onImageLoaded(String imageUrl, Drawable imageDrawable, View view, boolean isInCache) {
-		            if (view != null && imageDrawable != null) {
+				@Override
+				public void onPreGet(String imageUrl, View view) {
+					
+				}
+
+				@Override
+				public void onGetNotInCache(String imageUrl, View view) {
+					
+				}
+
+				@Override
+				public void onGetSuccess(String imageUrl, Bitmap loadedImage,
+						View view, boolean isInCache) {
+					if (view != null && loadedImage != null) {
 		                ImageView imageView = (ImageView)view;
-		                imageView.setImageDrawable(imageDrawable);
+		                imageView.setImageBitmap(loadedImage);
 		            }
-		        }
+				}
+				
+				@Override
+				public void onGetFailed(String imageUrl, Bitmap loadedImage,
+						View view, FailedReason failedReason) {
+					
+				}
 		    });	
 		}
 		return IconCache;
@@ -100,8 +126,22 @@ public final class LibraryAPI {
 
         params.add(new BasicNameValuePair("page", String.valueOf(p.page)));
         params.add(new BasicNameValuePair("displaypg", String.valueOf(p.displaypg)));
-        params.add(new BasicNameValuePair("title", p.title));
-
+        if (p.title != null) params.add(new BasicNameValuePair("title", p.title));
+        if (p.author != null) params.add(new BasicNameValuePair("author", p.author));
+        if (p.keyword != null) params.add(new BasicNameValuePair("keyword", p.keyword));
+        if (p.isbn != null) params.add(new BasicNameValuePair("isbn", p.isbn));
+        if (p.asordno != null) params.add(new BasicNameValuePair("asordno", p.asordno));
+        if (p.coden != null) params.add(new BasicNameValuePair("coden", p.coden));
+        if (p.callno != null) params.add(new BasicNameValuePair("callno", p.callno));
+        if (p.publisher != null) params.add(new BasicNameValuePair("publisher", p.publisher));
+        if (p.series != null) params.add(new BasicNameValuePair("series", p.series));
+        if (p.tpinyin != null) params.add(new BasicNameValuePair("tpinyin", p.tpinyin));
+        if (p.apinyin != null) params.add(new BasicNameValuePair("apinyin", p.apinyin));
+        if (p.location != null) params.add(new BasicNameValuePair("location", p.location));
+        if (p.onlylendable != null) params.add(new BasicNameValuePair("onlylendable", p.onlylendable));
+        if (p.subject != null) params.add(new BasicNameValuePair("subject", p.subject));
+        if (p.lang_code != null) params.add(new BasicNameValuePair("lang_code", p.lang_code));
+        
 	    String paramString = URLEncodedUtils.format(params, "utf-8");
 	    
 	    return Search + "?" + paramString;
@@ -122,6 +162,20 @@ public final class LibraryAPI {
 		public int displaypg = 20;
 		public String match_flag;
 		public String title;
+		public String author;
+		public String keyword;
+		public String isbn;
+		public String asordno;
+		public String coden;
+		public String callno;
+		public String publisher;
+		public String series;
+		public String tpinyin;
+		public String apinyin;
+		public String location;
+		public String onlylendable;
+		public String subject;
+		public String lang_code;
 	}
 	
 	public static class SearchResult {

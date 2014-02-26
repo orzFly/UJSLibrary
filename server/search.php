@@ -30,7 +30,7 @@ function sfield($k, $def)
 	return $r;
 }
 $result = array();
-$param = http_build_query(array(
+$paramo = array(
 	"title" => mfield("title"),
 	"author" => mfield("author"),
 	"keyword" => mfield("keyword"),
@@ -46,7 +46,7 @@ $param = http_build_query(array(
 	"location" => sfield("location",null),
 	"subject" => sfield("subject",null),
 	"doctype" => sfield("doctype", "ALL"),
-	"showloca" => sfield("page", 1) > 1 ? 0 : 1,
+	"showloca" => 0,
 	//"showsubject" => 1,
 	"page" => sfield("page", 1),
 	"onlylendable" => sfield("onlylendable", "no"),
@@ -54,11 +54,14 @@ $param = http_build_query(array(
 	"displaypg" => sfield("displaypg", 20),
 	"match_flag" => sfield("matchflag", "forward"), //前方一致forward/完全匹配full/任意匹配any
 	"lang_code" => sfield("langcode", "ALL"),
-));
+);
+
+$param = http_build_query($paramo);
+$all = array();
 result(
 	cached(
 		"search:" . sha1($param), 
-		function() use ($param) {
+		function() use ($param, $all) {
 			$body = file_get_contents(ENDPOINT_SEARCH . "?" . $param);
 			$noko = new nokogiri($body);
 			$result = $noko->get("div.list_books")->toArray();
@@ -102,7 +105,7 @@ result(
 				"categories" => array(), //done
 				"doctypes" => array(), //done
 				"locations" => array(), //done
-				"subjects" => array(), //done
+				//"subjects" => array(), //done
 			);
 			if (preg_match("{<option value='(\\d*?)'>\\1</option>(\n|\r|\s)*</select>}", $body, $match))
 			{
@@ -146,6 +149,7 @@ result(
 						);
 					}, $matches);
 				}
+				/*
 				if (preg_match_all("/<dd>&middot;<a href=\"\\?[^\"]*?&subject=([^\"]*?)\">([^<]*?)<\\/a>\\((\d*?)\\)<\\/dd>/", $body, $matches, PREG_SET_ORDER))
 				{
 					$all['subjects'] = array_map(function($in) {
@@ -155,9 +159,33 @@ result(
 						);
 					}, $matches);
 				}
+				*/
 			}
 			return $all;
 		},
-		"+10 minutes"
-	)
+		"+20 minutes"
+	),
+	function($all) use ($paramo, $param) {
+		if (sfield("page", 1) <= 1)
+		{
+			if (count($all['locations']) == 0)
+			{
+				$paramo['showloca'] = 1;
+				$body = file_get_contents(ENDPOINT_SEARCH . "?" . http_build_query($paramo));
+
+				if (preg_match_all("/<dd>&middot;<a href=\"\\?[^\"]*?&location=(\\d*?)\">([^<]*?)<\\/a>\\((\d*?)\\)<\\/dd>/", $body, $matches, PREG_SET_ORDER))
+				{
+					$all['locations'] = array_map(function($in) {
+						return array(
+							"location" => $in[1],
+							"description" => html_entity_decode($in[2]),
+							"count" => intval($in[3]),
+						);
+					}, $matches);
+
+					CacheSet("search:" . sha1($param), $all, "+20 minutes");
+				}
+			}
+		}
+	}
 );

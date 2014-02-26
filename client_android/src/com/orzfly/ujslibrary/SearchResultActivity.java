@@ -45,7 +45,20 @@ public class SearchResultActivity extends Activity {
 	    SearchResultAdapter adapter;
 	    View loading;
 	    View empty;
+	    String title;
 
+	    private void resetTitle(String memo)
+	    {
+	    	StringBuilder sb = new StringBuilder();
+	    	sb.append(StringEscapeUtils.escapeHtml4(title));
+	    	sb.append("<br />\n<small>");
+	    	sb.append(StringEscapeUtils.escapeHtml4(memo));
+	    	sb.append("</small>");
+	    	  
+	    	ActionBar ab = this.getActionBar();
+	    	ab.setTitle(Html.fromHtml(sb.toString()));
+	    }
+	    
 	    @Override
 	    protected void onCreate(Bundle savedInstanceState) {
 	    	Intent intent = getIntent();
@@ -55,13 +68,29 @@ public class SearchResultActivity extends Activity {
 	        super.onCreate(savedInstanceState);
 	        setContentView(R.layout.activity_search_result);
 	        
+	        title = buildTitle(intent);
+	        
 	        ActionBar ab = this.getActionBar();
 	        ab.setDisplayHomeAsUpEnabled(true);
 	        ab.setHomeButtonEnabled(true);
-	        ab.setTitle(intent.getStringExtra("title"));
+	        resetTitle("");
 	        
 	        sp = new LibraryAPI.SearchParameter();
 	        sp.title = intent.getStringExtra("title");
+	        sp.author = intent.getStringExtra("author");
+	        sp.keyword = intent.getStringExtra("keyword");
+	        sp.isbn = intent.getStringExtra("isbn");
+	        sp.asordno = intent.getStringExtra("asordno");
+	        sp.coden = intent.getStringExtra("coden");
+	        sp.callno = intent.getStringExtra("callno");
+	        sp.publisher = intent.getStringExtra("publisher");
+	        sp.series = intent.getStringExtra("series");
+	        sp.tpinyin = intent.getStringExtra("tpinyin");
+	        sp.apinyin = intent.getStringExtra("apinyin");
+	        sp.location = intent.getStringExtra("location");
+	        sp.onlylendable = intent.getStringExtra("onlylendable");
+	        sp.subject = intent.getStringExtra("subject");
+	        sp.lang_code = intent.getStringExtra("lang_code");
 	        
 	        loading = this.findViewById(R.id.loading);
 	        loading.setVisibility(View.VISIBLE);
@@ -88,6 +117,59 @@ public class SearchResultActivity extends Activity {
 	        adapter.reset();
 	    }
 
+	    public String buildTitle(Intent intent){
+	    	StringBuilder sb = new StringBuilder();
+	    	String prefix = "";
+	    	String[] keys = this.getResources().getStringArray(R.array.field_search_types_key);
+	    	String[] descriptions = this.getResources().getStringArray(R.array.field_search_types);
+	    	for(int i = 0; i < keys.length; i++)
+	    	{
+	    		String key = keys[i];
+	    		String value = intent.getStringExtra(key);
+	    		
+	    		if (value != null)
+	    		{
+	    			if (key.equalsIgnoreCase("title"))
+	    			{
+	    				prefix = value;
+	    			}
+	    			else
+	    			{
+	    				sb.append(descriptions[i]);
+	    				sb.append(":");
+	    				sb.append(value.replaceAll("\\\\", "\\\\\\\\").replaceAll(" ", "\\\\ "));
+	    				sb.append(" ");
+	    			}
+	    		}
+	    	}
+	    	
+	    	if (prefix.length() > 0)
+	    	{
+	    		if (sb.length() > 0)
+	    			sb.insert(0, " ");
+	    		
+	    		sb.insert(0, prefix);
+	    	}
+	    	
+	    	String[] dtkey = this.getResources().getStringArray(R.array.field_document_types_key);
+	    	String[] dtdesc = this.getResources().getStringArray(R.array.field_document_types);
+	    	String dt = intent.getStringExtra("doctype");
+	    	for(int i = 0; i < dtkey.length; i++)
+	    	{
+	    		if (dtkey[i].equalsIgnoreCase("ALL")) continue;
+	    		if (dt.equalsIgnoreCase(dtkey[i]))
+	    		{
+	    			sb.append(this.getResources().getString(R.string.field_document_type));
+	    			sb.append(":");
+	    			sb.append(dtdesc[i]);
+	    			sb.append(" ");
+	    			break;
+	    		}
+	    	}
+	    	
+	    	return sb.toString().trim();
+	    }
+	    
 		public static Context getContextOfApplication(){
 	        return contextOfApplication;
 	    }
@@ -147,11 +229,12 @@ public class SearchResultActivity extends Activity {
                     Log.d(TAG, "Got onNextPageRequested page=" + page);
                     
                     if (backgroundTask != null) {
-                            backgroundTask.cancel(false);
+                        backgroundTask.cancel(false);
                     }
                     
                     backgroundTask = new AsyncTask<Integer, Void, Pair<Boolean, List<LibraryAPI.SearchResult.SearchBookResult>>>() {
                     	int page;
+                    	LibraryAPI.SearchResult resultobj;
                     	
                         @Override
                         protected Pair<Boolean, List<LibraryAPI.SearchResult.SearchBookResult>> doInBackground(Integer... params) {
@@ -162,7 +245,6 @@ public class SearchResultActivity extends Activity {
                             try {
                             	ArrayList<NameValuePair> param = new ArrayList<NameValuePair>();
                                 HttpClient httpClient = new DefaultHttpClient();
-
                                 HttpPost httpPost = new HttpPost(LibraryAPI.buildSearchURL(sp));
                                 httpPost.setEntity(new UrlEncodedFormEntity(param));
                                 HttpResponse httpResponse = httpClient.execute(httpPost);
@@ -177,6 +259,7 @@ public class SearchResultActivity extends Activity {
                             try {
                                 BufferedReader bReader = new BufferedReader(new InputStreamReader(inputStream, "iso-8859-1"), 8);
                                 LibraryAPI.SearchResult obj = gson.fromJson(bReader, LibraryAPI.SearchResult.class);
+                                resultobj = obj;
                                 
                                 return new Pair<Boolean, List<LibraryAPI.SearchResult.SearchBookResult>>(
                             		obj.pages > page, 
@@ -190,28 +273,41 @@ public class SearchResultActivity extends Activity {
                             	false,
                             	new ArrayList<LibraryAPI.SearchResult.SearchBookResult>()
                             );
-                        }
+                        } 
                         
                         @Override
-                        protected void onPostExecute(Pair<Boolean, List<LibraryAPI.SearchResult.SearchBookResult>> result) {
-                            if (isCancelled()) return; 
+                        protected void onPostExecute(final Pair<Boolean, List<LibraryAPI.SearchResult.SearchBookResult>> result) {
+                            if (isCancelled()) return;
 
-                            if (page == 1)
-                            {
-	                	        loading.setVisibility(View.GONE);
-	                	        empty.setVisibility(View.VISIBLE);
-	                	        SearchResultActivity.this.list.setEmptyView(empty);
-                            }
-                            
-                            list.addAll(result.second);
-                            nextPage();
-                            notifyDataSetChanged();
-                            
-                            if (result.first) {
-                                    notifyMayHaveMorePages();
-                            } else {
-                                    notifyNoMorePages();
-                            }
+                            SearchResultActivity.this.runOnUiThread(
+                            	new Runnable() {
+									@Override
+									public void run() {
+			                            if (page == 1)
+			                            {
+				                	        loading.setVisibility(View.GONE);
+				                	        empty.setVisibility(View.VISIBLE);
+				                	        SearchResultActivity.this.list.setEmptyView(empty);
+			                            }
+										
+			                            list.addAll(result.second);
+			                            notifyDataSetChanged();
+	
+			                            nextPage();
+			                            
+			                            if (result.first) {
+			                                notifyMayHaveMorePages();
+			                            } else {
+			                                notifyNoMorePages();
+			                            }
+			                            
+			                            if (resultobj != null)
+			                            {
+			                            	resetTitle(String.valueOf(resultobj.count));
+			                            }
+									}
+	                            }
+                            );
                         };
                     }.execute(page);
                 }
